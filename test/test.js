@@ -1,3 +1,6 @@
+let path = require('path');
+let http = require('http')
+
 let test = require('test');
 test.setup();
 
@@ -168,6 +171,59 @@ describe('router, test', () => {
       var r1 = router();
       r1.set('test1', 123);
       assert.equal(r1.get('test1'), 123);
+    })
+
+
+    it('test static', () => {
+      var port = 51369;
+      console.debug('\t__dirname:', __dirname);
+
+      //
+      var r1 = router();
+      r1.static('*', path.join(__dirname, './static'));
+      var svr = new http.Server(port, r1)
+      svr.asyncRun();
+
+      var resp = http.get(`http://localhost:${port}/index.html`);
+      if(resp) {
+        var html = resp.readAll().toString();
+        //console.debug('html:', html);
+        assert.equal(html, '<html>test</html>');
+      }else {
+        assert.isTrue(false);
+      }
+      svr.stop();
+
+      //
+      var r1 = router();
+      r1.static('/pub(/.+)', path.join(__dirname, './static'));
+      var svr = new http.Server(port, r1)
+      svr.asyncRun();
+      var resp = http.get(`http://localhost:${port}/pub/index.html`);
+      if(resp) {
+        var html = resp.readAll().toString();
+        //console.debug('html:', html);
+        assert.equal(html, '<html>test</html>');
+      }else {
+        assert.isTrue(false);
+      }
+      svr.stop();
+      
+      //
+      var r1 = router();
+      r1.static('/pub(/.+)', './upload', path.join(__dirname, '/static'));
+      var svr = new http.Server(port, r1)
+      svr.asyncRun();
+      var resp = http.get(`http://localhost:${port}/pub/index.html`);
+      if(resp) {
+        var html = resp.readAll().toString();
+        //console.debug('html:', html);
+        assert.equal(html, '<html>upload</html>');
+      }else {
+        assert.isTrue(false);
+      }
+      svr.stop();
+
     })
 
 });
