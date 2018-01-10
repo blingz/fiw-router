@@ -121,6 +121,40 @@ describe('router, test', () => {
 
 
 
+
+    it('test before/after', () => {
+
+      var cnt = {a:0, b:0, c:0, d:0};
+      var r2 = router({
+        'y': {
+          '/1': {
+            '/31(.*)': router(
+              r=>{cnt.a++},   //前置过滤器
+              {
+                '/666': r=>{
+                  cnt.d++;
+                  assert.equal('/666', r.value);
+                },
+                '*': r=>{
+                  cnt.b++;
+                  assert.equal('', r.value);
+                }
+              }, 
+              r=>{cnt.c++})  // 后置过滤器
+          }
+        }
+      })
+
+      mq.invoke(r2, msg('y/1/31'));
+      mq.invoke(r2, msg('y/1/31/666'));
+
+      assert.equal(cnt.a, 2); //前置过滤器
+      assert.equal(cnt.b, 1);
+      assert.equal(cnt.c, 2);  //后置过滤器
+      assert.equal(cnt.d, 1);
+    })
+
+
     it('test method: GET/POST', () => {
 
       var cnt = {a:0, b:0, c:0, d:0, x:0, y:0};
